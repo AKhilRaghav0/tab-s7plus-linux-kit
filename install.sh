@@ -51,7 +51,7 @@ fi
 echo "==> Keep services alive when the screen is off (mobile-power-saver)"
 if gsettings list-schemas | grep -q org.adishatz.Mps; then
   cur=$(gsettings get org.adishatz.Mps suspend-user-services-blacklist)
-  for s in cpu-guard cover-watch spen-buttons spen-air lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse org.droidian.Flashlightd; do
+  for s in cpu-guard cover-watch spen-buttons spen-air lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse org.droidian.Flashlightd auto-brightness; do
     echo "$cur" | grep -q "$s.service" || cur="${cur%]}, '$s.service']"
   done
   gsettings set org.adishatz.Mps suspend-user-services-blacklist "$cur"
@@ -60,7 +60,8 @@ fi
 echo "==> Enabling services"
 systemctl --user daemon-reload
 systemctl --user restart org.droidian.Flashlightd.service 2>/dev/null || true
-for s in cpu-guard volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode; do
+gsettings set org.gnome.settings-daemon.plugins.power ambient-enabled false 2>/dev/null || true   # auto-brightness.py does it
+for s in cpu-guard volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode auto-brightness; do
   systemctl --user enable --now "$s.service" || echo "   (could not start $s, check: journalctl --user -u $s)"
 done
 echo
