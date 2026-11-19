@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Claude Code
+Comment=Claude Code in a persistent tmux session
+Exec=kgx -- tmux new -A -s claude /home/droidian/.local/bin/claude
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Development;

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Desktop Mode
+Comment=Toggle windowed desktop mode
+Exec=/home/droidian/.local/bin/desktop-mode.sh toggle
+Icon=video-display
+Type=Application
+Categories=Settings;

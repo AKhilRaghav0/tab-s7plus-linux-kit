@@ -1,0 +1,9 @@
+[Unit]
+Description=Headset buttons to media controls
+After=graphical-session.target
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/bin/headset-buttons.py
+Restart=always
+RestartSec=2
+[Install]
+WantedBy=default.target

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Reading Mode
+Comment=Toggle quiet, warm, dim reading mode + Foliate
+Exec=/home/droidian/.local/bin/reading-mode.sh
+Icon=accessories-dictionary
+Type=Application

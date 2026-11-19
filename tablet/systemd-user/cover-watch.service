@@ -1,0 +1,9 @@
+[Unit]
+Description=Book cover: screen off on close, on when opened
+After=graphical-session.target
+[Service]
+ExecStart=%h/.local/bin/cover-watch.sh
+Restart=always
+RestartSec=2
+[Install]
+WantedBy=default.target

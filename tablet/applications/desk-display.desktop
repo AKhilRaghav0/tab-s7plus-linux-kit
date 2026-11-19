@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Desk Display
+Comment=Always-on clock and status (tap 3x to exit)
+Exec=python3 /home/droidian/.local/bin/desk-display.py
+Icon=preferences-system-time
+Type=Application

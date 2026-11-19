@@ -1,0 +1,10 @@
+[Unit]
+Description=S Pen detach actions
+After=graphical-session.target
+[Service]
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=%h/.local/bin/spen-watch.sh
+Restart=always
+RestartSec=2
+[Install]
+WantedBy=default.target

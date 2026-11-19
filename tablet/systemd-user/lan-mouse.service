@@ -1,0 +1,10 @@
+[Unit]
+Description=Lan Mouse (receive Mac keyboard/trackpad)
+After=graphical-session.target
+[Service]
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=%h/.local/bin/lan-mouse --emulation-backend wlroots --capture-backend layer-shell daemon
+Restart=on-failure
+RestartSec=3
+[Install]
+WantedBy=default.target

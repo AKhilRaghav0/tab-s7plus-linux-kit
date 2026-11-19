@@ -1,0 +1,24 @@
+diff --git a/src/androidfp.cpp b/src/androidfp.cpp
+index 95a9de3..6bd1e36 100644
+--- a/src/androidfp.cpp
++++ b/src/androidfp.cpp
+@@ -201,15 +201,15 @@ void AndroidFP::acquiredCallback(UHardwareBiometryFingerprintAcquiredInfo info)
+     emit acquired(info);
+ }
+ 
+-void AndroidFP::enrollresult_cb(uint64_t, uint32_t fingerId, uint32_t, uint32_t remaining, void *context)
++void AndroidFP::enrollresult_cb(uint64_t, uint32_t fingerId, uint32_t groupId, uint32_t remaining, void *context)
+ {
+-    qDebug() << Q_FUNC_INFO << fingerId << remaining;
++    qDebug() << Q_FUNC_INFO << "finger" << fingerId << "group" << groupId << "remaining" << remaining;
+     static_cast<AndroidFP*>(context)->enrollCallback(fingerId, remaining);
+ }
+ 
+-void AndroidFP::acquired_cb(uint64_t, UHardwareBiometryFingerprintAcquiredInfo info, int32_t, void *context)
++void AndroidFP::acquired_cb(uint64_t, UHardwareBiometryFingerprintAcquiredInfo info, int32_t vendorCode, void *context)
+ {
+-    qDebug() << Q_FUNC_INFO << info;
++    qDebug() << Q_FUNC_INFO << info << "vendorCode" << vendorCode;
+     static_cast<AndroidFP*>(context)->acquiredCallback(info);
+ }
+ 

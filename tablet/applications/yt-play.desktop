@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=YouTube Player
+Comment=Play the copied YouTube link smoothly (hardware decode)
+Exec=/home/droidian/.local/bin/yt-play.sh
+Icon=video-x-generic
+Type=Application

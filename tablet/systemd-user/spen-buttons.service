@@ -1,0 +1,10 @@
+[Unit]
+Description=S Pen side-button actions
+After=graphical-session.target
+[Service]
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=/usr/bin/python3 %h/.local/bin/spen-buttons.py
+Restart=always
+RestartSec=2
+[Install]
+WantedBy=default.target
