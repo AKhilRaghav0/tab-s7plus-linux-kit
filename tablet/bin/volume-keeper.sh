@@ -12,6 +12,7 @@ ensure_mac(){ pactl list short sinks | grep -q "mac_speaker" || pactl load-modul
 defsink(){ pactl info | awk -F": " "/^Default Sink/{print \$2}"; }
 route(){
   kill_sidetone
+  pactl set-source-port source.primary-in input-builtin_mic 2>/dev/null   # droid mic defaults to the (absent) wired-headset port and runs at ~20% speed
   [ "$(defsink)" = "mac_speaker" ] && return     # user chose Mac Speaker: leave it
   for c in $(pactl list short cards | awk "/alsa_card.usb/{print \$2}"); do
     pactl set-card-profile "$c" output:analog-stereo+input:mono-fallback 2>/dev/null || pactl set-card-profile "$c" output:analog-stereo 2>/dev/null

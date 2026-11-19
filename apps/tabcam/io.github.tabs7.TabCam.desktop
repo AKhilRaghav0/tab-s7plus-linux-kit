@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=TabCam
+Comment=Camera for Galaxy Tab S7+ (all lenses, video, night, pro)
+Exec=env GSK_RENDERER=cairo python3 /home/droidian/.local/share/tabcam/tabcam.py
+Icon=io.github.tabs7.TabCam
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;Photography;
+StartupNotify=true
+X-Purism-FormFactor=Workstation;Mobile;
+StartupWMClass=io.github.tabs7.TabCam
