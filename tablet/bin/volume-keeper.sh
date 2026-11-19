@@ -1,12 +1,13 @@
 #!/bin/bash
-# Audio manager: remember speaker volume, sane routing for USB-C headphones.
+# Audio manager: remember speaker volume, sane routing for Bluetooth and USB-C headphones.
 #  - USB audio plugged  -> analog-stereo profile, make it default, move streams to it
 #  - USB audio removed  -> default back to speakers (sink.primary-out), move streams there
 #  - never let the fake 8 kHz SCO sink become default
 F=$HOME/.config/last-volume; SPK=sink.primary-out
 getvol(){ pactl list sinks | awk -v s="$SPK" "\$1==\"Name:\"{f=(\$2==s)} f&&/^\tVolume:/{for(i=1;i<=NF;i++) if(\$i ~ /%\$/){print \$i; exit}}"; }
 move_all(){ for i in $(pactl list short sink-inputs | cut -f1); do pactl move-sink-input "$i" "$1" 2>/dev/null; done; }
-usb_sink(){ pactl list short sinks | awk "/alsa_output.usb/{print \$2; exit}"; }
+# external output: Bluetooth (A2DP) first, then USB audio
+usb_sink(){ pactl list short sinks | awk "/bluez_sink\..*a2dp/{print \$2; exit}"; pactl list short sinks | awk "/alsa_output.usb/{print \$2; exit}"; }
 kill_sidetone(){ $HOME/.local/bin/kill-sidetone.sh; }
 ensure_mac(){ pactl list short sinks | grep -q "mac_speaker" || pactl load-module module-null-sink sink_name=mac_speaker rate=48000 sink_properties=device.description=MacBook >/dev/null; }
 defsink(){ pactl info | awk -F": " "/^Default Sink/{print \$2}"; }
@@ -17,7 +18,10 @@ route(){
   for c in $(pactl list short cards | awk "/alsa_card.usb/{print \$2}"); do
     pactl set-card-profile "$c" output:analog-stereo+input:mono-fallback 2>/dev/null || pactl set-card-profile "$c" output:analog-stereo 2>/dev/null
   done
-  u=$(usb_sink)
+  for c in $(pactl list short cards | awk "/bluez_card/{print \$2}"); do     # music profile, not the 8/16 kHz call profile
+    pactl set-card-profile "$c" a2dp_sink 2>/dev/null
+  done
+  u=$(usb_sink | head -1)
   if [ -n "$u" ]; then pactl set-default-sink "$u"; move_all "$u"
   else pactl set-sink-port $SPK output-speaker 2>/dev/null; pactl set-default-sink $SPK; move_all $SPK; fi
 }
