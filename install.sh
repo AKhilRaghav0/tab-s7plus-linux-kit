@@ -51,7 +51,7 @@ fi
 echo "==> Keep services alive when the screen is off (mobile-power-saver)"
 if gsettings list-schemas | grep -q org.adishatz.Mps; then
   cur=$(gsettings get org.adishatz.Mps suspend-user-services-blacklist)
-  for s in cpu-guard cover-watch spen-buttons spen-air lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse org.droidian.Flashlightd auto-brightness; do
+  for s in cpu-guard cover-watch spen-buttons spen-air lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse org.droidian.Flashlightd auto-brightness pickup-wake; do
     echo "$cur" | grep -q "$s.service" || cur="${cur%]}, '$s.service']"
   done
   gsettings set org.adishatz.Mps suspend-user-services-blacklist "$cur"
@@ -69,4 +69,5 @@ echo "Done. Optional:"
 echo "  systemctl --user enable --now lan-mouse     # needs ~/.local/bin/lan-mouse"
 echo "  systemctl --user enable --now spen-air      # after pairing the S Pen (see README)"
 echo "  systemctl --user enable --now charge-watch  # desk display when charging"
+echo "  sensorfw-pickup/build.sh && systemctl --user enable --now pickup-wake   # pick up to wake"
 echo "Restart Phosh (sudo systemctl restart phosh) for the profile/title-bar changes."

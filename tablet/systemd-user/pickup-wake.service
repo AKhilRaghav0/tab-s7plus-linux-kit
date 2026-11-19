@@ -1,0 +1,12 @@
+[Unit]
+Description=Pick up to wake (sensor hub pick-up gesture)
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/bin/pickup-wake.py
+Restart=always
+RestartSec=3
+Nice=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,9 @@
+TEMPLATE = lib
+CONFIG += plugin c++17
+QT += core dbus network
+TARGET = hybrispickupadaptor-qt6
+DEFINES += USE_BINDER
+INCLUDEPATH += . /usr/include/sensord-qt6 /usr/include/sensord-qt6/datatypes /usr/include/gbinder /usr/include/glib-2.0 /usr/lib/aarch64-linux-gnu/glib-2.0/include /usr/include/libglibutil
+HEADERS += hybrispickupadaptor.h hybrispickupadaptorplugin.h hybrisadaptor.h
+SOURCES += hybrispickupadaptor.cpp hybrispickupadaptorplugin.cpp
+LIBS += -lhybrissensorfw-qt6 -lsensordatatypes-qt6 -lsensorfw-qt6 -lgbinder -lglibutil -lglib-2.0
