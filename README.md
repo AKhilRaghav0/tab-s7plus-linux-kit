@@ -13,6 +13,7 @@ This repo is a set of small, dependency-light scripts, systemd user services and
 
 | Feature | What it does | Files |
 |---|---|---|
+| ⚡ **CPU guard** | mobile-power-saver sets the governor to `powersave` on screen-off and sometimes fails to restore it, which leaves all 8 cores stuck at about 0.7 GHz and makes everything lag. This keeps them on `schedutil` while the screen is on. | `cpu-guard.sh` |
 | 🔊 **Real volume steps** | Fixes the port's all-or-nothing volume by switching the droid sink to software volume (`hw_volume=false`). | `tablet/system/etc/pulse/arm_droid_card_custom.pa` |
 | 🎧 **Audio manager** | Remembers the speaker volume across reboots and forces the speaker port when nothing is plugged in. USB-C headsets get the right profile, become the default and receive the playing streams; unplugging routes back to the speakers (no more "stuck on a dead device" browser hangs). It also mutes headset **sidetone** (mic monitor) so you don't hear yourself. | `volume-keeper.sh`, `kill-sidetone.sh` |
 | ⏯️ **Headset buttons** | USB-C or wired headset buttons drive MPRIS through playerctl: 1× play/pause, 2× next, 3× previous, plus vol ±. Hot-plug aware, and it grabs the device so the button doesn't double-toggle in Firefox. | `headset-buttons.py` |

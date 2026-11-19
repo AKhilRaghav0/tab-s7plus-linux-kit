@@ -1,0 +1,9 @@
+[Unit]
+Description=Keep CPU governor on schedutil while the screen is on
+After=graphical-session.target
+[Service]
+ExecStart=%h/.local/bin/cpu-guard.sh
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=default.target

@@ -9,20 +9,22 @@ def pc(*a): subprocess.Popen(["playerctl", *a], stdout=subprocess.DEVNULL, stder
 def vol(step):
     subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", step])
     subprocess.Popen(["pactl", "set-sink-mute", "@DEFAULT_SINK@", "0"])
-sel = selectors.DefaultSelector(); devs = {}; presses = []; last_scan = 0
+sel = selectors.DefaultSelector(); devs = {}; skip = set(); presses = []; last_scan = 0
 def scan():
-    for p in evdev.list_devices():
-        if p in devs: continue
+    paths = set(evdev.list_devices())
+    skip.intersection_update(paths)          # forget removed nodes so a re-plugged device is checked again
+    for p in paths:
+        if p in devs or p in skip: continue  # never re-open built-in devices (touch/pen IC re-inits on open)
         try:
             d = evdev.InputDevice(p)
-            if d.name in INTERNAL or d.name.startswith("lan-mouse"): d.close(); continue
+            if d.name in INTERNAL or d.name.startswith("lan-mouse"): d.close(); skip.add(p); continue
             keys = d.capabilities().get(K.EV_KEY, [])
             if K.KEY_PLAYPAUSE in keys or K.KEY_PLAYCD in keys or K.KEY_MEDIA in keys:
                 try: d.grab()   # exclusive: stop the compositor/Firefox from also toggling
                 except OSError: pass
                 devs[p] = d; sel.register(d, selectors.EVENT_READ)
-            else: d.close()
-        except Exception: pass
+            else: d.close(); skip.add(p)
+        except Exception: skip.add(p)
 while True:
     if time.time() - last_scan > 2: scan(); last_scan = time.time()
     for key, _ in sel.select(timeout=0.3):

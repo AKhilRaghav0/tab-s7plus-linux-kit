@@ -38,7 +38,7 @@ fi
 echo "==> Keep services alive when the screen is off (mobile-power-saver)"
 if gsettings list-schemas | grep -q org.adishatz.Mps; then
   cur=$(gsettings get org.adishatz.Mps suspend-user-services-blacklist)
-  for s in cover-watch spen-buttons lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse; do
+  for s in cpu-guard cover-watch spen-buttons lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse; do
     echo "$cur" | grep -q "$s.service" || cur="${cur%]}, '$s.service']"
   done
   gsettings set org.adishatz.Mps suspend-user-services-blacklist "$cur"
@@ -46,7 +46,7 @@ fi
 
 echo "==> Enabling services"
 systemctl --user daemon-reload
-for s in volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode charge-watch; do
+for s in cpu-guard volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode charge-watch; do
   systemctl --user enable --now "$s.service" || echo "   (could not start $s, check: journalctl --user -u $s)"
 done
 echo
