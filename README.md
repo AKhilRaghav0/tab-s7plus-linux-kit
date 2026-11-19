@@ -26,6 +26,7 @@ This repo is a set of small, dependency-light scripts, systemd user services and
 | 🤖 **Claude Code launcher** | A persistent `tmux` session running Claude Code. | `claude-code.desktop`, `tmux.conf` |
 | 🖱️ **Mac keyboard/trackpad** | [lan-mouse](https://github.com/feschber/lan-mouse) user service (wlroots emulation plus layer-shell capture). | `lan-mouse.service` |
 | 📋 **Mac ↔ Tab bridge** | Runs on the Mac over SSH: **two-way clipboard sync** (pbcopy ↔ wl-copy) and **tablet notifications as macOS notifications**. | `mac/tab_bridge.py` |
+| 🔈 **Play on Mac** (AirPlay-style) | A one-tap toggle sends all tablet audio to a `Mac-Speaker` sink, and the Mac bridge streams it there with `parec` → SSH → `ffplay`, only while something is playing. Real AirPlay (RAOP) fails against the macOS receiver because it needs AirPlay 2 pairing. | `play-on-mac.sh`, `mac/tab_bridge.py` |
 | 👆 **In-display fingerprint (WIP)** | Research plus a helper that talks to Samsung's SEH HAL over hwbinder and lights the sensor. See below. | `fingerprint/`, `docs/fingerprint-research.md` |
 
 ## 📦 Install (on the tablet)
@@ -60,6 +61,7 @@ All the details and next steps are in [`docs/fingerprint-research.md`](docs/fing
 
 ## ⚠️ Notes
 - **Firefox:** Widevine DRM works (L3 only, since the bootloader is unlocked) via [AsahiLinux/widevine-installer](https://github.com/AsahiLinux/widevine-installer). It needs `LIBDIR=/usr/lib CHROME_WIDEVINE_BASE=/usr/lib/chromium` on Debian. Installing `gstreamer1.0-libav` (FFmpeg) noticeably smooths Firefox video.
+- **Firefox speed-ups** (software rendering on hybris): `media.av1.enabled=false` and `media.mediasource.vp9.enabled=false` (YouTube then sends H.264), `layout.frame_rate=60`, and no smooth scrolling or animations.
 - **mobile-power-saver** freezes apps when the screen is off. Add your music app to `org.adishatz.Mps suspend-apps-blacklist`, and these services to `suspend-user-services-blacklist`.
 - **Panel:** 60/120 Hz only ("No support LFD"). The night-light/gamma has no effect on hwcomposer.
 

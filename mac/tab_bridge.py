@@ -121,9 +121,36 @@ def tab_notifications():
         time.sleep(5)
 
 
+FFPLAY = next((p for p in ("/opt/homebrew/bin/ffplay", "/usr/local/bin/ffplay") if __import__("os").path.exists(p)), "ffplay")
+
+def mac_speaker():
+    """Play the tablet's 'Mac-Speaker' sink on this Mac whenever something is playing into it."""
+    state_cmd = ENV + " pactl list short sinks | awk '$2==\"mac_speaker\"{print $NF}'"
+    rec_cmd = ENV + " exec parec -d mac_speaker.monitor --format=s16le --rate=48000 --channels=2 --latency-msec=40 --raw"
+    player = None
+    while True:
+        try:
+            st = subprocess.run(SSH + [state_cmd], capture_output=True, text=True, timeout=10).stdout.strip()
+        except Exception:
+            st = ""
+        playing = st == "RUNNING"
+        if playing and player is None:
+            src = subprocess.Popen(SSH + [rec_cmd], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            ply = subprocess.Popen([FFPLAY, "-nodisp", "-loglevel", "quiet", "-fflags", "nobuffer", "-flags", "low_delay",
+                                    "-probesize", "32", "-f", "s16le", "-ar", "48000", "-ch_layout", "stereo", "-i", "-"],
+                                   stdin=src.stdout, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            player = (src, ply); log("mac speaker: playing")
+        elif player and (not playing or player[1].poll() is not None or player[0].poll() is not None):
+            for p in player:
+                try: p.kill()
+                except Exception: pass
+            player = None; log("mac speaker: stopped")
+        time.sleep(2)
+
+
 if __name__ == "__main__":
     log("tab bridge starting")
-    for fn in (mac_to_tab, tab_to_mac, tab_notifications):
+    for fn in (mac_to_tab, tab_to_mac, tab_notifications, mac_speaker):
         threading.Thread(target=fn, daemon=True).start()
     while True:
         time.sleep(3600)

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Play on Mac
+Comment=Toggle tablet audio output between the tablet and the Mac
+Exec=/home/droidian/.local/bin/play-on-mac.sh
+Icon=computer
+Type=Application
