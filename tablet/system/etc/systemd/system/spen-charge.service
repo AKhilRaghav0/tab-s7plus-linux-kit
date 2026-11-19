@@ -1,0 +1,11 @@
+[Unit]
+Description=Keep S Pen charging while docked
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/local/sbin/spen-charge.sh
+Restart=always
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

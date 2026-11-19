@@ -32,13 +32,17 @@ if [ $SYSTEM = 1 ]; then
       sudo install -D -m644 tablet/system/etc/$f /etc/$f
     done
     sudo systemctl kill -s HUP systemd-logind || true
+    # S Pen charging keeper (needs root for the sec_epen sysfs node)
+    sudo install -m755 tablet/system/usr/local/sbin/spen-charge.sh /usr/local/sbin/
+    sudo install -m644 tablet/system/etc/systemd/system/spen-charge.service /etc/systemd/system/
+    sudo systemctl daemon-reload && sudo systemctl enable --now spen-charge.service || true
   fi
 fi
 
 echo "==> Keep services alive when the screen is off (mobile-power-saver)"
 if gsettings list-schemas | grep -q org.adishatz.Mps; then
   cur=$(gsettings get org.adishatz.Mps suspend-user-services-blacklist)
-  for s in cpu-guard cover-watch spen-buttons lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse; do
+  for s in cpu-guard cover-watch spen-buttons spen-air lock-rotate desktop-mode volume-keeper headset-buttons charge-watch lan-mouse; do
     echo "$cur" | grep -q "$s.service" || cur="${cur%]}, '$s.service']"
   done
   gsettings set org.adishatz.Mps suspend-user-services-blacklist "$cur"
@@ -46,9 +50,12 @@ fi
 
 echo "==> Enabling services"
 systemctl --user daemon-reload
-for s in cpu-guard volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode charge-watch; do
+for s in cpu-guard volume-keeper headset-buttons cover-watch spen-buttons lock-rotate desktop-mode; do
   systemctl --user enable --now "$s.service" || echo "   (could not start $s, check: journalctl --user -u $s)"
 done
 echo
-echo "Done. Optional: 'systemctl --user enable --now lan-mouse' (needs ~/.local/bin/lan-mouse)."
+echo "Done. Optional:"
+echo "  systemctl --user enable --now lan-mouse     # needs ~/.local/bin/lan-mouse"
+echo "  systemctl --user enable --now spen-air      # after pairing the S Pen (see README)"
+echo "  systemctl --user enable --now charge-watch  # desk display when charging"
 echo "Restart Phosh (sudo systemctl restart phosh) for the profile/title-bar changes."

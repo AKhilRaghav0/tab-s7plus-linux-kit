@@ -21,9 +21,11 @@ This repo is a set of small, dependency-light scripts, systemd user services and
 | ⏯️ **Headset buttons** | USB-C or wired headset buttons drive MPRIS through playerctl: 1× play/pause, 2× next, 3× previous, plus vol ±. Hot-plug aware, and it grabs the device so the button doesn't double-toggle in Firefox. | `headset-buttons.py` |
 | 📕 **Smart cover** | Closing the Book Cover locks the tablet and turns the display **off**; opening turns it back on. | `cover-watch.sh`, `20-cover-lock.conf` |
 | ✏️ **S Pen button actions** | Hovering with the side button: **double-click takes a screenshot** (to `~/Pictures/Screenshots`), **long-press opens a new Xournal++ note**. Optional: open notes when the pen is detached. | `spen-buttons.py`, `spen-watch.sh` |
+| 🔋 **S Pen charging** | Android's S Pen service turns on wireless charging when the pen is docked on the back; without it the pen sits at `DISCHARGE`. This writes `1` to `/sys/class/sec/sec_epen/epen_ble_charging_mode` whenever `epen_insert=1`. | `spen-charge.sh`, `spen-charge.service` |
+| 🪄 **S Pen Air Actions** | The pen's Bluetooth remote button and air gestures, **reverse-engineered** from Samsung's BLE service `0xfd6c`: 1× play/pause, 2× next, long-press previous; hold the button and swipe left/right for prev/next and up/down for volume. Like on One UI, it disconnects and goes quiet when you dock the pen, and reconnects when you pull it out. Protocol notes below. | `spen-air.py`, `spen-air.service` |
 | 🔄 **Lock-screen rotation** | Phosh freezes rotation while locked; this rotates the lock screen from the accelerometer. It learns Phosh's own orientation→transform mapping and hands control back on unlock. | `lock-rotate.py` |
 | 🖥️ **Desktop mode** | One-tap toggle for windowed apps (`auto-maximize=false`), kept on even when Phosh's docked manager disagrees. It also gives Qt apps (Telegram etc.) proper title bars. | `desktop-mode.sh`, `mobi.phosh.Shell.service.d-desktop-mode.conf`, `zz-wayland.sh` |
-| 🕐 **Desk display** | Always-on dashboard: big clock, date, battery, Wi-Fi, temperature, weather and ping status of your servers. It switches to a dim AMOLED night style from 23:00 to 07:00 and **opens automatically when the charger is plugged in**. | `desk-display.py`, `charge-watch.sh` |
+| 🕐 **Desk display** | Always-on dashboard: big clock, date, battery, Wi-Fi, temperature, weather and ping status of your servers. It switches to a dim AMOLED night style from 23:00 to 07:00 and can **open automatically when a charger is plugged in** (`charge-watch`, off by default: a USB cable to a computer also counts as charging and would keep the screen on). | `desk-display.py`, `charge-watch.sh` |
 | 📚 **Reading mode** | Toggle for DND, dimmer screen, a longer timeout, and Foliate in sepia. | `reading-mode.sh` |
 | 📺 **Smooth YouTube** | Plays the copied YouTube link in Clapper with the **hardware decoder** (`droidvdec`) via yt-dlp. | `yt-play.sh` |
 | 🤖 **Claude Code launcher** | A persistent `tmux` session running Claude Code. | `claude-code.desktop`, `tmux.conf` |
@@ -49,6 +51,35 @@ Needs an SSH host alias `tabs7` with key auth. Then:
 ```bash
 python3 mac/tab_bridge.py      # or wrap it in a launchd agent
 ```
+
+## 🪄 S Pen Air Actions: how it works
+
+**Pairing (one-time):**
+1. BlueZ must be pairable, or the pen rejects the "No bonding" request with `SMP Pairing Failed (Unspecified reason)`.
+2. If the pen was paired with Android before, dock it and send a BLE reset: `echo 2 | sudo tee /sys/class/sec/sec_epen/epen_ble_charging_mode`, then `echo 1 | sudo tee ...` to start charging again.
+3. Pull the pen out, press its button, and pair:
+
+```bash
+bluetoothctl
+  agent NoInputNoOutput
+  default-agent
+  pairable on
+  scan le          # wait for "SPEN 02 (xxxx)"
+  pair  <MAC>
+  trust <MAC>
+```
+
+`spen-air.py` finds the first paired device named `SPEN*` (override with `SPEN_MAC`).
+
+**Protocol** (service `0000fd6c-...`, characteristic **"Button State"** `6c290d2e-1c03-aca1-ab48-a9b908bae79e`, notify):
+
+| Packet | Meaning |
+|---|---|
+| `03` | button down |
+| `f0 NN` + NN × `[0f dx:int16le dy:int16le seq]` | motion while held (the pen integrates the IMU itself) |
+| `00 00 00 00 00 NN` | button up |
+
+Other characteristics carry user descriptions: **Battery Level** `5a87b4ef-...434f` (byte 0 = %), Status, FW Version, **Mode**, **Raw ST Data** (raw IMU), Battery Raw, Manu_Date. A press counts as a gesture when the motion peak goes over about 600; otherwise it is a click, a double-click (within 0.35 s) or a long press (over 0.8 s). Edit `ACTIONS` in the script to remap. `SPEN_DEBUG=0` turns off the on-screen toasts.
 
 ## 👆 Fingerprint (in-display optical) — help wanted
 

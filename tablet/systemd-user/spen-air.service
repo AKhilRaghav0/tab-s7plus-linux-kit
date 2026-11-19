@@ -1,0 +1,11 @@
+[Unit]
+Description=S Pen Air Actions (BLE button + gestures)
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/bin/spen-air.py
+Restart=always
+RestartSec=5
+Nice=5
+
+[Install]
+WantedBy=default.target
