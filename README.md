@@ -13,6 +13,7 @@ This repo is a set of small, dependency-light scripts, systemd user services and
 
 | Feature | What it does | Files |
 |---|---|---|
+| 🔌 **USB networking** | The CDC-NCM gadget (native on macOS, no driver needed) gives the tablet `10.15.19.82`, and the host gets `10.15.19.100` from DHCP. It hands out no gateway or DNS, so the host keeps its own internet. For SSH, use `Match host tabs7 exec "nc -z -G 1 10.15.19.82 22"` → `HostName 10.15.19.82` to prefer the cable automatically. | `usb-net.sh`, `usb-net.service` |
 | 🧠 **zram tuning** | Rebuilds the zram swap as 3 GB **lz4** with priority 100, plus `swappiness=100`, `page-cluster=0`. | `zram-tune.sh`, `zram-tune.service` |
 | ⚡ **CPU guard** | mobile-power-saver sets the governor to `powersave` on screen-off and sometimes fails to restore it, which leaves all 8 cores stuck at about 0.7 GHz and makes everything lag. This keeps them on `schedutil` while the screen is on, with UI tuning: instant ramp-up, a 20 ms hold, higher hispeed frequencies, and a 0.98 GHz floor on the little cores. | `cpu-guard.sh` |
 | 🔊 **Real volume steps** | Fixes the port's all-or-nothing volume by switching the droid sink to software volume (`hw_volume=false`). | `tablet/system/etc/pulse/arm_droid_card_custom.pa` |

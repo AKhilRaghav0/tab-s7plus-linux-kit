@@ -1,0 +1,10 @@
+[Unit]
+Description=USB networking to the Mac (CDC-NCM + DHCP)
+After=android_boot_completed.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/local/sbin/usb-net.sh
+[Install]
+WantedBy=multi-user.target
