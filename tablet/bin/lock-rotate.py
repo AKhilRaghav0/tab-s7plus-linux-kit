@@ -52,8 +52,11 @@ def poll():
         state["poll"] = None
         return False
     if power_save_mode() == 0:          # lock screen is visible: follow the sensor
-        start_sensor()
-        reapply()
+        if state["proc"] is None:       # just woke: let Phosh finish laying out the lockscreen first
+            start_sensor()
+            GLib.timeout_add(700, reapply)
+        else:
+            reapply()
     else:                               # panel off: no need to keep the accelerometer running
         stop_sensor()
     return True
@@ -61,8 +64,7 @@ def poll():
 def on_power(conn, sender, path, iface, signal, params):
     i, changed, _ = params.unpack()
     if state["locked"] and "PowerSaveMode" in changed and changed["PowerSaveMode"] == 0:   # screen just came on
-        for ms in (150, 600, 1500):
-            GLib.timeout_add(ms, reapply)
+        GLib.timeout_add(700, reapply)      # once, after Phosh's own lockscreen fixup has settled
 
 def on_sensor_line(stream):
     line = stream.readline()
