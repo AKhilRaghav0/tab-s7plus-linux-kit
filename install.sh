@@ -28,6 +28,11 @@ install -m644 apps/tabcam/icons/*.svg ~/.local/share/tabcam/icons/
 install -m644 apps/tabcam/io.github.tabs7.TabCam.svg ~/.local/share/icons/hicolor/scalable/apps/
 sed "s|/home/droidian|$HOME|g" apps/tabcam/io.github.tabs7.TabCam.desktop > ~/.local/share/applications/io.github.tabs7.TabCam.desktop
 
+echo "==> S Pen hover-ring cursor theme"
+python3 tablet/bin/make-spen-cursor.py ~/.local/share/icons/spen-dot >/dev/null
+install -d ~/.icons/default && printf "[Icon Theme]\nInherits=spen-dot\n" > ~/.icons/default/index.theme
+gsettings set org.gnome.desktop.interface cursor-theme spen-dot
+
 echo "==> App launchers"
 for f in tablet/applications/*.desktop; do sed "s|/home/droidian|$HOME|g" "$f" > ~/.local/share/applications/"$(basename "$f")"; done
 [ -f ~/.tmux.conf ] || install -m644 tablet/tmux.conf ~/.tmux.conf
