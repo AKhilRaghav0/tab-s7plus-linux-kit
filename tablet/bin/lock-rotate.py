@@ -14,7 +14,7 @@ MAPF = os.path.expanduser("~/.config/lock-rotate.json")
 mapping = {"normal": "normal", "bottom-up": "180", "left-up": "90", "right-up": "270"}
 # fixed mapping for this landscape-native panel (right-up -> 270 verified)
 KEY = ("org.gnome.settings-daemon.peripherals.touchscreen", "orientation-lock")
-state = {"proc": None, "saved": None, "watch": None}
+state = {"proc": None, "saved": None, "watch": None, "locked": False, "poll": None}
 
 def cur_transform():
     r = subprocess.run(["wlr-randr", "--output", OUT], capture_output=True, text=True).stdout
@@ -27,8 +27,39 @@ def sensor_orientation():
 
 def apply(o):
     t = mapping.get(o)
-    if t and cur_transform() != t:
+    cur = cur_transform()          # None while the panel is off (output disabled)
+    if t and cur and cur != t:
         subprocess.run(["wlr-randr", "--output", OUT, "--transform", t])
+
+def reapply():
+    """Phosh resets the transform when it turns the panel back on, so re-apply a few times after wake."""
+    if state["locked"]:
+        o = sensor_orientation()
+        if o: apply(o)
+    return False
+
+def power_save_mode():
+    try:
+        v = bus.call_sync("org.gnome.Mutter.DisplayConfig", "/org/gnome/Mutter/DisplayConfig",
+                          "org.freedesktop.DBus.Properties", "Get",
+                          GLib.Variant("(ss)", ("org.gnome.Mutter.DisplayConfig", "PowerSaveMode")), None, 0, 1000, None)
+        return v.unpack()[0]
+    except Exception:
+        return None
+
+def poll():
+    if not state["locked"]:
+        state["poll"] = None
+        return False
+    if power_save_mode() == 0:          # lock screen is visible: make sure it follows the sensor
+        reapply()
+    return True
+
+def on_power(conn, sender, path, iface, signal, params):
+    i, changed, _ = params.unpack()
+    if state["locked"] and "PowerSaveMode" in changed and changed["PowerSaveMode"] == 0:   # screen just came on
+        for ms in (150, 600, 1500):
+            GLib.timeout_add(ms, reapply)
 
 def on_sensor_line(stream):
     line = stream.readline()
@@ -53,10 +84,14 @@ def on_locked():
     # Learning the mapping from Phosh's last choice was unreliable (rotation lock on, or the tablet lying flat,
     # means Phosh doesn't rotate, so we'd learn "normal" for everything). Use the fixed mapping instead.
     t = cur_transform()
-    state["saved"] = t
+    state["saved"] = t or state["saved"]
+    state["locked"] = True
+    if state["poll"] is None:
+        state["poll"] = GLib.timeout_add(1000, poll)
     start_sensor()
 
 def on_unlocked():
+    state["locked"] = False
     stop_sensor()
     if state["saved"]: subprocess.run(["wlr-randr", "--output", OUT, "--transform", state["saved"]])
     if subprocess.run(["gsettings", "get", *KEY], capture_output=True, text=True).stdout.strip() == "false":
@@ -69,4 +104,6 @@ def on_signal(conn, sender, path, iface, signal, params):
 bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
 bus.signal_subscribe(None, "org.gnome.ScreenSaver", "ActiveChanged", "/org/gnome/ScreenSaver", None,
                      Gio.DBusSignalFlags.NONE, on_signal)
+bus.signal_subscribe(None, "org.freedesktop.DBus.Properties", "PropertiesChanged", "/org/gnome/Mutter/DisplayConfig",
+                     None, Gio.DBusSignalFlags.NONE, on_power)
 GLib.MainLoop().run()
