@@ -51,8 +51,11 @@ def poll():
     if not state["locked"]:
         state["poll"] = None
         return False
-    if power_save_mode() == 0:          # lock screen is visible: make sure it follows the sensor
+    if power_save_mode() == 0:          # lock screen is visible: follow the sensor
+        start_sensor()
         reapply()
+    else:                               # panel off: no need to keep the accelerometer running
+        stop_sensor()
     return True
 
 def on_power(conn, sender, path, iface, signal, params):
@@ -88,7 +91,6 @@ def on_locked():
     state["locked"] = True
     if state["poll"] is None:
         state["poll"] = GLib.timeout_add(1000, poll)
-    start_sensor()
 
 def on_unlocked():
     state["locked"] = False
