@@ -13,7 +13,8 @@ This repo is a set of small, dependency-light scripts, systemd user services and
 
 | Feature | What it does | Files |
 |---|---|---|
-| ⚡ **CPU guard** | mobile-power-saver sets the governor to `powersave` on screen-off and sometimes fails to restore it, which leaves all 8 cores stuck at about 0.7 GHz and makes everything lag. This keeps them on `schedutil` while the screen is on. | `cpu-guard.sh` |
+| 🧠 **zram tuning** | Rebuilds the zram swap as 3 GB **lz4** with priority 100, plus `swappiness=100`, `page-cluster=0`. | `zram-tune.sh`, `zram-tune.service` |
+| ⚡ **CPU guard** | mobile-power-saver sets the governor to `powersave` on screen-off and sometimes fails to restore it, which leaves all 8 cores stuck at about 0.7 GHz and makes everything lag. This keeps them on `schedutil` while the screen is on, with UI tuning: instant ramp-up, a 20 ms hold, higher hispeed frequencies, and a 0.98 GHz floor on the little cores. | `cpu-guard.sh` |
 | 🔊 **Real volume steps** | Fixes the port's all-or-nothing volume by switching the droid sink to software volume (`hw_volume=false`). | `tablet/system/etc/pulse/arm_droid_card_custom.pa` |
 | 🎧 **Audio manager** | Remembers the speaker volume across reboots and forces the speaker port when nothing is plugged in. USB-C headsets get the right profile, become the default and receive the playing streams; unplugging routes back to the speakers (no more "stuck on a dead device" browser hangs). It also mutes headset **sidetone** (mic monitor) so you don't hear yourself. | `volume-keeper.sh`, `kill-sidetone.sh` |
 | ⏯️ **Headset buttons** | USB-C or wired headset buttons drive MPRIS through playerctl: 1× play/pause, 2× next, 3× previous, plus vol ±. Hot-plug aware, and it grabs the device so the button doesn't double-toggle in Firefox. | `headset-buttons.py` |
@@ -64,6 +65,8 @@ All the details and next steps are in [`docs/fingerprint-research.md`](docs/fing
 - **Firefox:** Widevine DRM works (L3 only, since the bootloader is unlocked) via [AsahiLinux/widevine-installer](https://github.com/AsahiLinux/widevine-installer). It needs `LIBDIR=/usr/lib CHROME_WIDEVINE_BASE=/usr/lib/chromium` on Debian. Installing `gstreamer1.0-libav` (FFmpeg) noticeably smooths Firefox video.
 - **Firefox speed-ups** (software rendering on hybris): `media.av1.enabled=false` and `media.mediasource.vp9.enabled=false` (YouTube then sends H.264), `layout.frame_rate=60`, and no smooth scrolling or animations.
 - **mobile-power-saver** freezes apps when the screen is off. Add your music app to `org.adishatz.Mps suspend-apps-blacklist`, and these services to `suspend-user-services-blacklist`.
+- **Debloat:** cups, ModemManager, ofono, nfcd, strongswan and openvpn are useless on the Wi-Fi tablet, as are the GNOME Software, Chatty and Evolution autostarts; disable them.
+- **Refresh-rate switching** isn't possible yet: libhybris' `libhwc2` compat layer has no `set_active_config`, so phoc stays on the HWC default mode (120 Hz).
 - **Panel:** 60/120 Hz only ("No support LFD"). The night-light/gamma has no effect on hwcomposer.
 
 ## 🙏 Credits

@@ -1,0 +1,9 @@
+[Unit]
+Description=Tune zram swap (lz4, 3G) after Android brings it up
+After=lxc@android.service android_boot_completed.service
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 20
+ExecStart=/usr/local/sbin/zram-tune.sh
+[Install]
+WantedBy=multi-user.target
