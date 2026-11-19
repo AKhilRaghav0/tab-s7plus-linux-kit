@@ -5,16 +5,14 @@ Phosh freezes rotation while locked. This daemon sleeps (GLib main loop, no poll
 until org.gnome.ScreenSaver emits ActiveChanged(true). Only then does it start
 monitor-sensor and rotate the output with wlr-randr. On unlock it stops the
 sensor, restores Phosh's transform and nudges Phosh to re-read the sensor.
-The orientation->transform mapping is learned by sampling Phosh's own choice
-right before each lock (stored in ~/.config/lock-rotate.json)."""
+The orientation->transform mapping is a fixed table (see `mapping`)."""
 import json, os, re, subprocess
 from gi.repository import Gio, GLib
 
 OUT = "HWCOMPOSER-1"
 MAPF = os.path.expanduser("~/.config/lock-rotate.json")
 mapping = {"normal": "normal", "bottom-up": "180", "left-up": "90", "right-up": "270"}
-try: mapping.update(json.load(open(MAPF)))
-except Exception: pass
+# fixed mapping for this landscape-native panel (right-up -> 270 verified)
 KEY = ("org.gnome.settings-daemon.peripherals.touchscreen", "orientation-lock")
 state = {"proc": None, "saved": None, "watch": None}
 
@@ -52,9 +50,9 @@ def stop_sensor():
         state["proc"].kill(); state["proc"].wait(); state["proc"] = None
 
 def on_locked():
-    o, t = sensor_orientation(), cur_transform()            # learn Phosh's mapping from its last unlocked choice
-    if o and t and mapping.get(o) != t:
-        mapping[o] = t; json.dump(mapping, open(MAPF, "w"))
+    # Learning the mapping from Phosh's last choice was unreliable (rotation lock on, or the tablet lying flat,
+    # means Phosh doesn't rotate, so we'd learn "normal" for everything). Use the fixed mapping instead.
+    t = cur_transform()
     state["saved"] = t
     start_sensor()
 
